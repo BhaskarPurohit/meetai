@@ -1,36 +1,113 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MeetAI
 
-## Getting Started
+**Build and Deploy a SaaS AI Agent Platform | Next.js 15, React, Better Auth, Polar**
 
-First, run the development server:
+---
+
+## 🚀 Project Overview
+
+MeetAI is a platform to build and deploy SaaS AI agents. This repository is scaffolded for a modern Next.js + TypeScript stack and is intended to evolve during development. The README will be updated continuously to reflect progress, decisions, and setup notes.
+
+## 📋 Table of Contents
+
+- [Quickstart](#-quickstart)
+- [Features](#-features)
+- [Project Status & Development Log](#-project-status--development-log)
+- [Project Structure](#-project-structure)
+- [Contributing & Updating this README](#-contributing--updating-this-readme)
+- [License](#-license)
+
+---
+
+## ⚡ Quickstart
+
+Prerequisites:
+- Node.js (recommended LTS)
+- npm
+
+Install and run locally:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Build for production:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+npm start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Linting and type checks (if configured):
 
-## Learn More
+```bash
+npm run lint
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ✨ Features
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Next.js 15 + React
+- TypeScript
+- Tailwind CSS (v4+)
+- shadcn/ui (component library) — Base UI option
+- Helpful utilities: `cn` helper, `clsx`, `tailwind-merge`
+- Designed for integration with modern auth (Better Auth) and Polar for user management
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🔨 Project Status & Development Log
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This section is a running log of work done and short-term TODOs. I will update it as development progresses.
+
+### Unreleased
+- [ ] Fresh project scaffold: Next.js + TypeScript + Tailwind + shadcn (Base UI)
+- [ ] Add example components and UI demo pages
+- [ ] Add auth (Better Auth) + Polar integration
+- [ ] End-to-end tests and CI
+
+### Changelog
+- **2026-02-01** — README created and updated. Tailwind config added and `globals.css` updated for Tailwind v4. Installed `clsx`, `tailwind-merge`, and `tailwindcss-animate`. Ran `npx shadcn@latest init` (project initialized). Sample component add step pending.
+
+> Want an entry added? Tell me what changed and I will append a concise log entry and update the status.
+
+---
+
+## 📁 Project Structure (example)
+
+```
+/ (repo root)
+├─ src/
+│  ├─ app/
+│  │  ├─ page.tsx
+│  │  ├─ layout.tsx
+│  │  └─ globals.css
+│  └─ lib/
+│     └─ utils.ts
+├─ tailwind.config.cjs
+├─ package.json
+└─ README.md
+```
+
+---
+
+## 🤝 Contributing & Updating this README
+
+- If you want the README updated as features are added, mention the change and I (the assistant) will update the Development Log and relevant sections.
+- Keep entries short and factual — date, short description, and status.
+
+---
+
+## ⚖️ License
+
+This project does not yet have a license. Add a `LICENSE` file when you decide on one.
+
+---
+
+If you'd like, I can now:
+- scaffold a fresh Next.js + TypeScript project here and complete the shadcn (Base UI) setup, or
+- finish adding a sample component (e.g., Button) and a demo page.
+
+Tell me which you prefer and I will continue. ✨
