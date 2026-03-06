@@ -20,6 +20,7 @@ import {
 import { useForm } from "react-hook-form"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { FaGithub, FaGoogle } from "react-icons/fa"
 
 const formSchema = z.object({
     email: z.string().email(),
@@ -55,13 +56,35 @@ export const SignInview = () => {
                     router.push("/")
                     setPending(false)
                 },
-                onError: ({error}) =>{
+                onError: ({error}: {error: {message: string}}) =>{
                     setError(error.message )
                 }
             }
         )
     }
 
+        const onSocial = async ( provider: "github" | "google") =>{
+                setError(null)
+                setPending(true)
+        
+                authClient.signIn.social(
+                    {
+                        provider:provider
+                    },
+        
+                    {
+                        onSuccess: ()=>{
+                            router.push("/")
+                            setPending(false)
+                        },
+                        onError: ({error}: {error: {message: string}}) =>{
+                            setPending(false)
+                            setError(error.message )
+                        }
+                    }
+                )
+            }
+    
     
 
     return (
@@ -138,17 +161,22 @@ export const SignInview = () => {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <Button
+                                    disabled={pending}
+                                    onClick={() => onSocial("google")}
                                         variant="outline"
                                         type="button"
                                         className="w-full">
-                                        Google
+                                        <FaGoogle/>
 
                                     </Button>
                                     <Button
+                                    disabled={pending}
+                                    onClick={() => onSocial("github")}
                                         variant="outline"
                                         type="button"
                                         className="w-full">
-                                        Github
+                                            <FaGithub/>
+                                
 
                                     </Button>
                                 </div>
@@ -163,7 +191,7 @@ export const SignInview = () => {
 
                         <div className="
   relative md:flex items-center justify-center
-  bg-gradient-to-br
+  bg-linear-to-br
   from-[#4F8CFF]
   via-[#7B5CFF]
   to-[#1E1B4B]
@@ -172,7 +200,7 @@ export const SignInview = () => {
                                 <img
                                     src="/meetai_logo.svg"
                                     alt="Meet.ai logo"
-                                    className="w-[180px] h-auto drop-shadow-xl"
+                                    className="w-45 h-auto drop-shadow-xl"
                                 />
                             </div>
                         </div>
