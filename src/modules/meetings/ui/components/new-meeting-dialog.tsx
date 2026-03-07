@@ -4,13 +4,14 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createMeeting } from "@/modules/meetings/server/actions";
 import type { Agent } from "@/lib/db/schema";
+import { toast } from "sonner";
 
 export function NewMeetingDialog({
   agents,
   onClose,
 }: {
   agents: Agent[];
-  onClose: () => void;
+  onClose: (created?:boolean) => void;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -27,10 +28,11 @@ export function NewMeetingDialog({
           name,
           agentId: agentId || undefined,
         });
-        onClose();
+        onClose(true);
         router.push(`/dashboard/meetings/${meeting.id}`);
       } catch {
         setError("Failed to create meeting. Please try again.");
+        toast("Failled to create meeting!")
       }
     });
   };

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import type { MeetingWithIntelligence, Agent } from "@/lib/db/schema";
 import { MeetingCard } from "./meeting-card";
 import { NewMeetingDialog } from "./new-meeting-dialog";
@@ -17,9 +18,10 @@ export function MeetingsClient({
   const router = useRouter();
   const [showDialog, setShowDialog] = useState(searchParams.get("new") === "1");
 
-  const handleClose = () => {
+  const handleClose = (created?: boolean) => {
     setShowDialog(false);
     router.replace("/dashboard");
+    if (created) toast.success("Meeting created — joining now");
   };
 
   return (
@@ -28,12 +30,6 @@ export function MeetingsClient({
         <p className="meetings-count">
           {initialMeetings.length} meeting{initialMeetings.length !== 1 ? "s" : ""}
         </p>
-        <button className="btn-primary-sm" onClick={() => setShowDialog(true)}>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-          New Meeting
-        </button>
       </div>
 
       {initialMeetings.length === 0 ? (

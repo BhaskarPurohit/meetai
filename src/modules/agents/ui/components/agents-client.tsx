@@ -5,30 +5,26 @@ import { useSearchParams, useRouter } from "next/navigation";
 import type { Agent } from "@/lib/db/schema";
 import { AgentCard } from "./agent-card";
 import { NewAgentDialog } from "./new-agent-dialog";
+import { toast } from "sonner";
 
 export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [showDialog, setShowDialog] = useState(searchParams.get("new") === "1");
 
-  const handleClose = () => {
+  const handleClose = (created?:boolean) => {
     setShowDialog(false);
     router.replace("/dashboard/agents");
+    if(created)  toast.success("Agent Created!")
   };
 
   return (
     <div className="agents-page">
       <div className="agents-toolbar">
-        <p className="agents-count">
-          {initialAgents.length} agent{initialAgents.length !== 1 ? "s" : ""}
-        </p>
-        <button className="btn-primary-sm" onClick={() => setShowDialog(true)}>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-          New Agent
-        </button>
-      </div>
+  <p className="agents-count">
+    {initialAgents.length} agent{initialAgents.length !== 1 ? "s" : ""}
+  </p>
+</div>
 
       {initialAgents.length === 0 ? (
         <div className="empty-state">

@@ -1,11 +1,10 @@
-export default function KnowledgePage() {
-  return (
-    <div className="placeholder-page">
-      <div className="placeholder-inner">
-        <div className="placeholder-icon" style={{ color: "#8b5cf6" }}>◆</div>
-        <h2 className="placeholder-title">Knowledge Base</h2>
-        <p className="placeholder-desc">Semantic search across all your meeting transcripts. Coming next.</p>
-      </div>
-    </div>
-  );
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { KnowledgeClient } from "@/modules/knowledge/ui/components/knowledge-client";
+
+export default async function KnowledgePage() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) redirect("/auth/sign-in");
+  return <KnowledgeClient />;
 }

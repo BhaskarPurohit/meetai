@@ -2,30 +2,37 @@
 
 import { useState, useTransition } from "react";
 import { createAgent } from "@/modules/agents/server/actions";
-import { PROMPTS } from "@/lib/openai";
+import { toast } from "sonner";
 
 type Persona = "scribe" | "devil_advocate" | "timekeeper" | "decision_tracker" | "custom";
 
-const PERSONAS: { value: Persona; label: string; prompt: string }[] = [
-  { value: "scribe", label: "Scribe", prompt: PROMPTS.AGENT_PERSONAS.scribe },
-  { value: "devil_advocate", label: "Devil's Advocate", prompt: PROMPTS.AGENT_PERSONAS.devil_advocate },
-  { value: "timekeeper", label: "Timekeeper", prompt: PROMPTS.AGENT_PERSONAS.timekeeper },
-  { value: "decision_tracker", label: "Decision Tracker", prompt: PROMPTS.AGENT_PERSONAS.decision_tracker },
-  { value: "custom", label: "Custom", prompt: "" },
+const PERSONA_PROMPTS: Record<Persona, string> = {
+  scribe: `You are a meticulous meeting scribe. Your job is to capture everything important with precision. Focus on: exact decisions made, who said what, specific numbers and dates mentioned, and any commitments made. Be concise but complete.`,
+  devil_advocate: `You are a constructive devil's advocate in this meeting. When you hear assumptions, plans, or decisions being made, gently challenge them with questions like "Have we considered...?" or "What happens if...?". Your goal is to help the team think critically, not to obstruct.`,
+  timekeeper: `You are a timekeeper for this meeting. Monitor the discussion and provide gentle reminders when topics are running long. Suggest moving on when a point has been sufficiently discussed. Help the team stay on agenda and finish on time.`,
+  decision_tracker: `You are a decision tracker. Your sole focus is identifying and logging every decision made in this meeting, no matter how small. When you detect a decision being made, clearly state: "Decision logged: [decision]". At the end, provide a clean list of all decisions made.`,
+  custom: ``,
+};
+
+const PERSONAS: { value: Persona; label: string }[] = [
+  { value: "scribe", label: "Scribe" },
+  { value: "devil_advocate", label: "Devil's Advocate" },
+  { value: "timekeeper", label: "Timekeeper" },
+  { value: "decision_tracker", label: "Decision Tracker" },
+  { value: "custom", label: "Custom" },
 ];
 
-export function NewAgentDialog({ onClose }: { onClose: () => void }) {
+export function NewAgentDialog({ onClose }: { onClose: (created?: boolean) => void }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
   const [persona, setPersona] = useState<Persona>("scribe");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [systemPrompt, setSystemPrompt] = useState(PROMPTS.AGENT_PERSONAS.scribe);
+  const [systemPrompt, setSystemPrompt] = useState(PERSONA_PROMPTS.scribe);
 
   const handlePersonaChange = (p: Persona) => {
     setPersona(p);
-    const found = PERSONAS.find((x) => x.value === p);
-    if (found && found.prompt) setSystemPrompt(found.prompt);
+    if (PERSONA_PROMPTS[p]) setSystemPrompt(PERSONA_PROMPTS[p]);
   };
 
   const handleSubmit = () => {
@@ -37,19 +44,21 @@ export function NewAgentDialog({ onClose }: { onClose: () => void }) {
     startTransition(async () => {
       try {
         await createAgent({ name, persona, systemPrompt, description });
-        onClose();
+        toast.success("Agent created");
+        onClose(true);
       } catch {
         setError("Failed to create agent. Please try again.");
+        toast.error("Failed to create agent");
       }
     });
   };
 
   return (
-    <div className="dialog-overlay" onClick={onClose}>
+    <div className="dialog-overlay" onClick={() => onClose()}>
       <div className="dialog" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-header">
           <h2 className="dialog-title">New Agent</h2>
-          <button className="dialog-close" onClick={onClose}>✕</button>
+          <button className="dialog-close" onClick={() => onClose()}>✕</button>
         </div>
 
         <div className="dialog-body">
@@ -60,6 +69,7 @@ export function NewAgentDialog({ onClose }: { onClose: () => void }) {
               placeholder="e.g. Sprint Scribe"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              autoFocus
             />
           </div>
 
@@ -104,7 +114,7 @@ export function NewAgentDialog({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="dialog-footer">
-          <button className="btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn-secondary" onClick={() => onClose()}>Cancel</button>
           <button className="btn-primary" onClick={handleSubmit} disabled={isPending}>
             {isPending ? <span className="btn-spinner" /> : null}
             {isPending ? "Creating..." : "Create Agent"}
