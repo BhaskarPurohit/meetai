@@ -69,9 +69,14 @@ export const sessions = pgTable("sessions", {
   id: text("id").primaryKey(),
   expiresAt: timestamp("expires_at").notNull(),
   token: text("token").notNull().unique(),
+
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -85,6 +90,11 @@ export const accounts = pgTable("accounts", {
     .references(() => users.id, { onDelete: "cascade" }),
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at"),  // ← add
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"), // ← add
+  scope: text("scope"),                                         // ← add
+  password: text("password"),                                   // ← add
   expiresAt: timestamp("expires_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -96,6 +106,7 @@ export const verifications = pgTable("verifications", {
   value: text("value").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -377,3 +388,4 @@ export type MeetingWithIntelligence = Meeting & {
 export type MeetingWithAll = MeetingWithIntelligence & {
   actionItems: ActionItem[];
 };
+
