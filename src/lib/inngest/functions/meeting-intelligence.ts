@@ -1,7 +1,8 @@
 import { inngest } from "@/lib/inngest/client";
 import { db } from "@/lib/db";
 import { meetings, agents, meetingIntelligence, actionItems, meetingEmbeddings } from "@/lib/db/schema";
-import { openai, PROMPTS, generateEmbedding, chunkTranscript } from "@/lib/openai";
+import { analyzeMeeting } from "@/lib/claude";
+import { generateEmbedding, chunkTranscript } from "@/lib/openai";
 import { eq } from "drizzle-orm";
 
 export const processMeetingIntelligence = inngest.createFunction(
@@ -51,33 +52,9 @@ export const processMeetingIntelligence = inngest.createFunction(
         })
       : null;
 
-    // Step 3 — run OpenAI intelligence pipeline
+    // Step 3 — run Claude intelligence pipeline
     const intelligence = await step.run("run-ai-analysis", async () => {
-      const prompt = PROMPTS.MEETING_INTELLIGENCE(meeting.rawTranscript!);
-      // If the meeting has an agent, use its system prompt to shape the analysis focus
-      const systemPrompt = agent?.systemPrompt
-        ? `${agent.systemPrompt}\n\nBased on the above perspective, analyze the meeting and return structured JSON.`
-        : "You are an expert meeting analyst.";
-
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: prompt },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.2,
-      });
-
-      const raw = response.choices[0].message.content ?? "{}";
-      return JSON.parse(raw) as {
-        summary: string;
-        sentiment: "productive" | "neutral" | "tense";
-        actionItems: { owner: string; task: string; dueDate?: string }[];
-        decisions: string[];
-        keyTopics: string[];
-        followUpEmail: string;
-      };
+      return analyzeMeeting(meeting.rawTranscript!, agent?.systemPrompt);
     });
 
     // Step 4 — save intelligence report

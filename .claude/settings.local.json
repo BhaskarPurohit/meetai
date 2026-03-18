@@ -17,7 +17,10 @@
       "Bash(npx tsc:*)",
       "Bash(node -e \"console.log\\(require\\(''./node_modules/react-resizable-panels/package.json''\\).version\\)\")",
       "Bash(node -e \"const r = require\\(''react-resizable-panels''\\); console.log\\(Object.keys\\(r\\)\\)\")",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npm install:*)",
+      "Bash(node -e \"const v = require\\(''voyageai''\\); console.log\\(Object.keys\\(v\\)\\)\")",
+      "Bash(node:*)"
     ]
   }
 }

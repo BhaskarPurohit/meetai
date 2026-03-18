@@ -20,8 +20,11 @@ const envSchema = z.object({
   NEXT_PUBLIC_STREAM_KEY: z.string().min(1),
   STREAM_SECRET: z.string().min(1),
 
-  // OpenAI
-  OPENAI_API_KEY: z.string().startsWith("sk-"),
+  // Anthropic
+  ANTHROPIC_API_KEY: z.string().startsWith("sk-ant-"),
+
+  // Voyage AI
+  VOYAGE_API_KEY: z.string().min(1),
 
   // Polar
   POLAR_ACCESS_TOKEN: z.string().min(1),
