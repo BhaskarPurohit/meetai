@@ -269,7 +269,7 @@ export const meetingEmbeddings = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     content: text("content").notNull(),               // the text chunk that was embedded
-    embedding: vector("embedding", { dimensions: 1536 }), // OpenAI text-embedding-3-small
+    embedding: vector("embedding", { dimensions: 1024 }), // Voyage AI voyage-3-lite
     chunkIndex: integer("chunk_index").notNull(),     // order within the meeting
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },

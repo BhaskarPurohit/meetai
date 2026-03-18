@@ -2,6 +2,7 @@ import { defineConfig } from "drizzle-kit";
 import { config } from "dotenv";
 
 config({ path: ".env.local" });
+config({ path: ".env" }); // fallback for local dev
 
 if (!process.env.DIRECT_URL) {
   throw new Error(

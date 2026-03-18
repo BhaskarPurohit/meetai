@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { MeetingWithIntelligence } from "@/lib/db/schema";
 import { MeetingStatusBadge } from "./meeting-status-badge";
 import { deleteMeeting } from "@/modules/meetings/server/actions";
+import { toast } from "sonner";
 
 function formatDate(d: Date) {
   return new Intl.DateTimeFormat("en-US", {
@@ -36,7 +37,12 @@ export function MeetingCard({ meeting }: { meeting: MeetingWithIntelligence }) {
         <button
           className="meeting-delete-btn"
           disabled={isPending}
-          onClick={() => startTransition(() => deleteMeeting(meeting.id))}
+          onClick={() => startTransition(
+            async () => {
+                await deleteMeeting(meeting.id)
+                toast.success("Meeting Deleted!")
+            }
+          )}
         >
           {isPending ? "..." : "✕"}
         </button>

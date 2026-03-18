@@ -1,11 +1,10 @@
-export default function AgentsPage() {
-  return (
-    <div className="placeholder-page">
-      <div className="placeholder-inner">
-        <div className="placeholder-icon" style={{ color: "#6366f1" }}>◈</div>
-        <h2 className="placeholder-title">AI Agents</h2>
-        <p className="placeholder-desc">Configure personas that join your meetings. Coming next.</p>
-      </div>
-    </div>
-  );
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { AgentsListView } from "@/modules/agents/ui/views/agents-list-view";
+
+export default async function AgentsPage() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) redirect("/auth/sign-in");
+  return <AgentsListView userId={session.user.id} />;
 }

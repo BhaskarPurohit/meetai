@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \":*)",
+      "Bash(\"c:\\\\Users\\\\bhask\\\\OneDrive\\\\Desktop\\\\meetai\\\\.env\")",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(grep -r import.*from /c/Users/bhask/OneDrive/Desktop/meetai/src --include=*.ts --include=*.tsx)",
+      "Bash(grep -r process.env /c/Users/bhask/OneDrive/Desktop/meetai/src --include=*.ts --include=*.tsx)",
+      "Bash(grep -r 'from @/' /c/Users/bhask/OneDrive/Desktop/meetai/src --include=*.ts --include=*.tsx)",
+      "Bash(git:*)",
+      "Bash(npm run:*)",
+      "Bash(nslookup:*)",
+      "Bash(dir:*)",
+      "Bash(ls -1 \"C:\\\\Users\\\\bhask\\\\OneDrive\\\\Desktop\\\\meetai\"/.env*)",
+      "Bash(node -e \"const ts = require\\(''typescript''\\); console.log\\(ts.version\\)\")",
+      "Bash(npx tsc:*)",
+      "Bash(node -e \"console.log\\(require\\(''./node_modules/react-resizable-panels/package.json''\\).version\\)\")",
+      "Bash(node -e \"const r = require\\(''react-resizable-panels''\\); console.log\\(Object.keys\\(r\\)\\)\")",
+      "Bash(ls:*)",
+      "Bash(npm install:*)",
+      "Bash(node -e \"const v = require\\(''voyageai''\\); console.log\\(Object.keys\\(v\\)\\)\")",
+      "Bash(node:*)"
+    ]
+  }
+}

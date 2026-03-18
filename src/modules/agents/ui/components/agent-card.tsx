@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import type { Agent } from "@/lib/db/schema";
 import { deleteAgent } from "@/modules/agents/server/actions";
+import { toast } from "sonner";
 
 const PERSONA_META = {
   scribe: { label: "Scribe", color: "#6366f1", desc: "Accurate notes & transcription" },
@@ -19,7 +20,9 @@ export function AgentCard({ agent }: { agent: Agent }) {
 
   const handleDelete = () => {
     if (!confirming) { setConfirming(true); return; }
-    startTransition(() => deleteAgent(agent.id));
+    startTransition(async () => {
+         await deleteAgent(agent.id)
+         toast.success("Agent Deleted!")});
   };
 
   return (

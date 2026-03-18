@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { meetings } from "@/lib/db/schema";
+import { meetings, actionItems } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -24,12 +24,30 @@ export async function createMeeting(formData: z.infer<typeof createMeetingSchema
   // Create Stream call first — get the call ID
   const callId = crypto.randomUUID();
   const call = streamServerClient.video.call("default", callId);
-  await call.getOrCreate({
-    data: {
-      created_by_id: session.user.id,
-      custom: { meetingName: parsed.data.name },
-    },
-  });
+
+  // Try to enable auto-transcription; fall back silently if the plan doesn't support it
+  try {
+    await call.getOrCreate({
+      data: {
+        created_by_id: session.user.id,
+        custom: { meetingName: parsed.data.name },
+        settings_override: {
+          transcription: {
+            mode: "auto-on",
+            closed_caption_mode: "available",
+          },
+        },
+      },
+    });
+  } catch {
+    // Plan doesn't support transcription settings — create without them
+    await call.getOrCreate({
+      data: {
+        created_by_id: session.user.id,
+        custom: { meetingName: parsed.data.name },
+      },
+    });
+  }
 
   const [meeting] = await db
     .insert(meetings)
@@ -44,6 +62,26 @@ export async function createMeeting(formData: z.infer<typeof createMeetingSchema
 
   revalidatePath("/dashboard");
   return meeting;
+}
+
+export async function toggleActionItem(actionItemId: string, completed: boolean) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) throw new Error("Unauthorized");
+
+  await db
+    .update(actionItems)
+    .set({
+      completed,
+      completedAt: completed ? new Date() : null,
+    })
+    .where(
+      and(
+        eq(actionItems.id, actionItemId),
+        eq(actionItems.userId, session.user.id),
+      )
+    );
+
+  revalidatePath("/dashboard");
 }
 
 export async function deleteMeeting(meetingId: string) {

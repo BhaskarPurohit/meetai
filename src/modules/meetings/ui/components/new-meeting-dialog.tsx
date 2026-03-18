@@ -4,19 +4,22 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createMeeting } from "@/modules/meetings/server/actions";
 import type { Agent } from "@/lib/db/schema";
+import { toast } from "sonner";
 
 export function NewMeetingDialog({
   agents,
   onClose,
 }: {
   agents: Agent[];
-  onClose: () => void;
+  onClose: (created?: boolean) => void;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [name, setName] = useState("");
   const [agentId, setAgentId] = useState<string>("");
   const [error, setError] = useState("");
+
+  const handleClose = () => onClose(false);
 
   const handleSubmit = () => {
     if (!name.trim()) { setError("Meeting name is required."); return; }
@@ -27,20 +30,21 @@ export function NewMeetingDialog({
           name,
           agentId: agentId || undefined,
         });
-        onClose();
+        onClose(true);
         router.push(`/dashboard/meetings/${meeting.id}`);
       } catch {
         setError("Failed to create meeting. Please try again.");
+        toast.error("Failed to create meeting!");
       }
     });
   };
 
   return (
-    <div className="dialog-overlay" onClick={onClose}>
+    <div className="dialog-overlay" onClick={isPending ? undefined : handleClose}>
       <div className="dialog" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-header">
           <h2 className="dialog-title">New Meeting</h2>
-          <button className="dialog-close" onClick={onClose}>✕</button>
+          <button className="dialog-close" onClick={handleClose} disabled={isPending}>✕</button>
         </div>
 
         <div className="dialog-body">
@@ -74,7 +78,7 @@ export function NewMeetingDialog({
 
           {agents.length === 0 && (
             <p className="dialog-hint">
-              Tip: Create an agent first and it will automatically join and take notes.
+              Tip: Create an agent first to customize the AI analysis after your meeting.
             </p>
           )}
 
@@ -82,7 +86,7 @@ export function NewMeetingDialog({
         </div>
 
         <div className="dialog-footer">
-          <button className="btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn-secondary" onClick={handleClose} disabled={isPending}>Cancel</button>
           <button className="btn-primary" onClick={handleSubmit} disabled={isPending}>
             {isPending ? <span className="btn-spinner" /> : null}
             {isPending ? "Creating..." : "Create & Join"}

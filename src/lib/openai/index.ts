@@ -1,9 +1,4 @@
-import OpenAI from "openai";
 import { env } from "@/lib/env";
-
-export const openai = new OpenAI({
-  apiKey: env.OPENAI_API_KEY,
-});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // INTELLIGENCE PIPELINE PROMPTS
@@ -74,11 +69,24 @@ of all decisions made.`,
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function generateEmbedding(text: string): Promise<number[]> {
-  const response = await openai.embeddings.create({
-    model: "text-embedding-3-small",  // 1536 dimensions, cheapest, good quality
-    input: text.replace(/\n/g, " "),  // newlines degrade embedding quality
+  const response = await fetch("https://api.voyageai.com/v1/embeddings", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${env.VOYAGE_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "voyage-3-lite",
+      input: text.replace(/\n/g, " "), // newlines degrade embedding quality
+    }),
   });
-  return response.data[0].embedding;
+
+  if (!response.ok) {
+    throw new Error(`Voyage AI embedding failed: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json() as { data: { embedding: number[] }[] };
+  return data.data[0].embedding;
 }
 
 /**

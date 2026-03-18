@@ -16,10 +16,21 @@ const PAGE_TITLES: Record<string, { title: string; description: string }> = {
   "/dashboard/settings": { title: "Settings", description: "Manage your account and integrations" },
 };
 
+const NEW_BTN: Record<string, string> = {
+  "/dashboard": "New Meeting",
+  "/dashboard/agents": "New Agent",
+};
+
 export function DashboardTopbar({ user: _ }: { user: User }) {
   const pathname = usePathname();
   const router = useRouter();
+
+  // Hide topbar entirely during active meeting calls
+  const isMeetingDetail = pathname.startsWith("/dashboard/meetings/");
+  if (isMeetingDetail) return null;
+
   const page = PAGE_TITLES[pathname] ?? PAGE_TITLES["/dashboard"];
+  const btnLabel = NEW_BTN[pathname];
 
   const handleNew = () => {
     if (pathname === "/dashboard/agents") {
@@ -36,12 +47,14 @@ export function DashboardTopbar({ user: _ }: { user: User }) {
         <p className="topbar-desc">{page.description}</p>
       </div>
       <div className="topbar-right">
-        <button className="topbar-new-btn" onClick={handleNew}>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-          {pathname === "/dashboard/agents" ? "New Agent" : "New Meeting"}
-        </button>
+        {btnLabel && (
+          <button className="topbar-new-btn" onClick={handleNew}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            {btnLabel}
+          </button>
+        )}
       </div>
     </header>
   );

@@ -28,7 +28,25 @@ export const auth = betterAuth({
   // Email + password as fallback
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false, // set true in production with email provider
+    requireEmailVerification: true,
+  },
+
+  // Email verification
+  // TODO: replace the stub below with a real provider (Resend, SendGrid, etc.)
+  // Until then, the verification link is printed to the server console for local dev.
+  emailVerification: {
+    sendVerificationEmail: async ({
+      user,
+      url,
+    }: {
+      user: { email: string };
+      url: string;
+    }) => {
+      console.warn(
+        `[MeetAI] Verify email for ${user.email} → ${url}\n` +
+          `Wire up a real email provider in src/lib/auth/index.ts to send this automatically.`
+      );
+    },
   },
 
   session: {
