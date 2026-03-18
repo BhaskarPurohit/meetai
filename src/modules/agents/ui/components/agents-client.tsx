@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { Agent } from "@/lib/db/schema";
 import { AgentCard } from "./agent-card";
@@ -10,7 +10,11 @@ import { toast } from "sonner";
 export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [showDialog, setShowDialog] = useState(searchParams.get("new") === "1");
+  const [showDialog, setShowDialog] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("new") === "1") setShowDialog(true);
+  }, [searchParams]);
 
   const handleClose = (created?:boolean) => {
     setShowDialog(false);
@@ -37,8 +41,8 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
           </div>
           <h3 className="empty-title">No agents yet</h3>
           <p className="empty-desc">
-            Create an AI agent with a persona and it will automatically join
-            your meetings, take notes, and generate insights.
+            Create an AI agent with a persona to shape how your meetings
+            are analyzed and what insights are generated after each call.
           </p>
           <button className="empty-cta" onClick={() => setShowDialog(true)}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">

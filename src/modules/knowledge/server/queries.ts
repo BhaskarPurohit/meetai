@@ -1,13 +1,12 @@
 import { db } from "@/lib/db";
-import { meetingEmbeddings, meetings } from "@/lib/db/schema";
-import { sql, eq, and } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { generateEmbedding } from "@/lib/openai";
 
 export async function semanticSearch(query: string, userId: string, limit = 8) {
   const embedding = await generateEmbedding(query);
   const embeddingStr = `[${embedding.join(",")}]`;
 
-  const results = await db.execute(sql`
+  const rows = await db.execute(sql`
     SELECT
       me.id,
       me.content,
@@ -22,7 +21,7 @@ export async function semanticSearch(query: string, userId: string, limit = 8) {
     LIMIT ${limit}
   `);
 
-  return results.rows as {
+  return rows as unknown as {
     id: string;
     content: string;
     meeting_id: string;

@@ -1,10 +1,9 @@
 import Link from "next/link";
 import type { MeetingWithAll } from "@/lib/db/schema";
 import { MeetingStatusBadge } from "../components/meeting-status-badge";
-
-
 import { CallUI } from "@/modules/agents/ui/components/call-ui";
 import { IntelligencePoller } from "../components/meeting-intelligence-poller";
+import { ActionItemsList } from "../components/action-items-list";
 
 function formatDate(d: Date) {
   return new Intl.DateTimeFormat("en-US", {
@@ -22,7 +21,12 @@ function formatDuration(s: number | null) {
 
 export function MeetingDetailView({ meeting }: { meeting: MeetingWithAll }) {
   const isJoinable = meeting.status === "upcoming" || meeting.status === "active";
-  const isProcessing = meeting.status === "completed" && !meeting.intelligence?.summary;
+  const isProcessing =
+    meeting.status === "completed" &&
+    !!meeting.intelligence?.processingStartedAt &&
+    !meeting.intelligence?.summary &&
+    !meeting.intelligence?.processingError &&
+    !meeting.intelligence?.processingCompletedAt;
   const hasIntel = !!meeting.intelligence?.summary;
 
   return (
@@ -108,18 +112,13 @@ export function MeetingDetailView({ meeting }: { meeting: MeetingWithAll }) {
 
             {meeting.actionItems?.length > 0 && (
               <div className="intel-card">
-                <h3 className="intel-card-title">Action Items</h3>
-                <div className="intel-action-items">
-                  {meeting.actionItems.map((a) => (
-                    <div key={a.id} className="intel-action-item">
-                      <div className="intel-action-dot" />
-                      <div className="intel-action-body">
-                        <span className="intel-action-task">{a.task}</span>
-                        {a.owner && <span className="intel-action-owner">{a.owner}</span>}
-                      </div>
-                    </div>
-                  ))}
+                <div className="intel-card-title-row">
+                  <h3 className="intel-card-title">Action Items</h3>
+                  <span className="intel-action-count">
+                    {meeting.actionItems.filter((a) => !a.completed).length} open
+                  </span>
                 </div>
+                <ActionItemsList items={meeting.actionItems} />
               </div>
             )}
 

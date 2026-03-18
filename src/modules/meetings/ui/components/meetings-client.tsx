@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { MeetingWithIntelligence, Agent } from "@/lib/db/schema";
@@ -16,7 +16,11 @@ export function MeetingsClient({
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [showDialog, setShowDialog] = useState(searchParams.get("new") === "1");
+  const [showDialog, setShowDialog] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("new") === "1") setShowDialog(true);
+  }, [searchParams]);
 
   const handleClose = (created?: boolean) => {
     setShowDialog(false);

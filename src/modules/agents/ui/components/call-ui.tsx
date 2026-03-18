@@ -1,146 +1,190 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import {
   StreamVideo,
   StreamCall,
-  StreamVideoClient,
-  CallControls,
-  SpeakerLayout,
   StreamTheme,
+  SpeakerLayout,
+  CallControls,
   useCallStateHooks,
-  CallingState,
+  StreamVideoClient,
+  Call,
 } from "@stream-io/video-react-sdk";
-import { useRouter } from "next/navigation";
 
 interface CallUIProps {
   meetingId: string;
   streamCallId: string;
 }
 
-function CallContent({ meetingId, onEnd }: { meetingId: string; onEnd: () => void }) {
-  const { useCallCallingState, useParticipantCount } = useCallStateHooks();
-  const callingState = useCallCallingState();
+function CallInner({ meetingId }: { meetingId: string }) {
+  const { useCallEndedAt, useParticipantCount } = useCallStateHooks();
+  const callEndedAt = useCallEndedAt();
   const participantCount = useParticipantCount();
+  const intentionalLeaveRef = useRef(false);
+  const transcriptRef = useRef<string[]>([]);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const callStartRef = useRef<number>(Date.now());
+
+  // Start speech recognition as soon as the call is live
+  useEffect(() => {
+    const SR = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+    if (!SR) return;
+
+    const recognition = new SR();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          transcriptRef.current.push(event.results[i][0].transcript.trim());
+        }
+      }
+    };
+
+    // Auto-restart if it stops (browser kills it after ~60s of silence)
+    recognition.onend = () => {
+      if (!intentionalLeaveRef.current) recognition.start();
+    };
+
+    recognition.onerror = (e: SpeechRecognitionErrorEvent) => {
+      if (e.error !== "no-speech" && e.error !== "aborted") {
+        console.warn("SpeechRecognition error:", e.error);
+      }
+    };
+
+    recognition.start();
+    recognitionRef.current = recognition;
+
+    return () => {
+      intentionalLeaveRef.current = true;
+      recognition.stop();
+    };
+  }, []);
+
+  const endMeeting = useCallback(
+    async (transcript: string | null) => {
+      const durationSeconds = Math.round((Date.now() - callStartRef.current) / 1000);
+      await fetch(`/api/meetings/${meetingId}/end`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ durationSeconds, transcript }),
+      });
+    },
+    [meetingId]
+  );
+
+  const handleEnd = useCallback(async () => {
+    intentionalLeaveRef.current = true;
+    recognitionRef.current?.stop();
+    const transcript = transcriptRef.current.join(" ") || null;
+    try {
+      await endMeeting(transcript);
+    } catch (e) {
+      console.error("Failed to end meeting:", e);
+    }
+    window.location.href = `/dashboard/meetings/${meetingId}`;
+  }, [meetingId, endMeeting]);
 
   useEffect(() => {
-    if (callingState === CallingState.LEFT) {
-      onEnd();
+    if (callEndedAt && !intentionalLeaveRef.current) {
+      intentionalLeaveRef.current = true;
+      recognitionRef.current?.stop();
+      const transcript = transcriptRef.current.join(" ") || null;
+      endMeeting(transcript).finally(() => {
+        window.location.href = `/dashboard/meetings/${meetingId}`;
+      });
     }
-  }, [callingState, onEnd]);
+  }, [callEndedAt, meetingId, endMeeting]);
 
   return (
     <div className="call-container">
       <div className="call-header">
-        <div className="call-status">
-          <span className="status-live-dot" style={{ background: "#10b981", width: 8, height: 8, borderRadius: "50%", display: "inline-block", marginRight: 8 }} />
-          <span style={{ color: "#10b981", fontSize: 13, fontWeight: 600 }}>Live</span>
-          <span style={{ color: "var(--meetai-text-disabled)", fontSize: 13, marginLeft: 12 }}>
-            {participantCount} participant{participantCount !== 1 ? "s" : ""}
-          </span>
+        <div className="call-live-badge">
+          <span className="call-live-dot" />
+          Live
         </div>
+        <span className="call-participant-count">
+          {participantCount} participant{participantCount !== 1 ? "s" : ""}
+        </span>
       </div>
-      <div className="call-video-area">
-        <SpeakerLayout />
-      </div>
-      <div className="call-controls-wrap">
-        <CallControls />
-      </div>
+      <StreamTheme>
+        <div className="call-video-area">
+          <SpeakerLayout />
+        </div>
+        <div className="call-controls-bar">
+          <CallControls onLeave={handleEnd} />
+        </div>
+      </StreamTheme>
     </div>
   );
 }
 
 export function CallUI({ meetingId, streamCallId }: CallUIProps) {
-  const router = useRouter();
   const [client, setClient] = useState<StreamVideoClient | null>(null);
-  const [call, setCall] = useState<ReturnType<StreamVideoClient["call"]> | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [call, setCall] = useState<Call | null>(null);
   const [error, setError] = useState("");
+  const [joined, setJoined] = useState(false);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
-    let videoClient: StreamVideoClient;
+    if (initializedRef.current) return;
+    initializedRef.current = true;
 
     async function init() {
       try {
-        const res = await fetch("/api/stream/token");
-        if (!res.ok) throw new Error("Failed to get token");
-        const { token, userId, userName, userImage } = await res.json() as {
-          token: string;
-          userId: string;
-          userName: string;
-          userImage: string | null;
-        };
+        const tokenRes = await fetch("/api/stream/token");
+        if (!tokenRes.ok) throw new Error("Failed to fetch Stream token");
+        const { token, userId, userName, userImage } = await tokenRes.json();
 
-        videoClient = new StreamVideoClient({
+        const videoClient = new StreamVideoClient({
           apiKey: process.env.NEXT_PUBLIC_STREAM_KEY!,
           user: { id: userId, name: userName, image: userImage ?? undefined },
           token,
         });
 
         const videoCall = videoClient.call("default", streamCallId);
-        await videoCall.join({ create: true });
+        await videoCall.join({ create: false });
 
         setClient(videoClient);
         setCall(videoCall);
+        setJoined(true);
       } catch (e) {
-        setError("Failed to join call. Please try again.");
-        console.error(e);
-      } finally {
-        setLoading(false);
+        console.error("Failed to join call:", e);
+        setError("Failed to join the call. Please refresh and try again.");
       }
     }
 
     init();
-
-    return () => {
-      videoClient?.disconnectUser();
-    };
   }, [streamCallId]);
-
-const handleEnd = useCallback(async () => {
-  try {
-    await call?.leave();
-    await fetch(`/api/meetings/${meetingId}/end`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ durationSeconds: null }),
-    });
-  } catch (e) {
-    console.error("Failed to end meeting:", e);
-  }
-  // Hard navigate so server refetches meeting status
-  window.location.href = `/dashboard/meetings/${meetingId}`;
-}, [meetingId, call]);
-
-  if (loading) {
-    return (
-      <div className="call-loading">
-        <div className="call-loading-spinner" />
-        <p>Joining call…</p>
-      </div>
-    );
-  }
 
   if (error) {
     return (
       <div className="call-error">
         <p>{error}</p>
-        <button className="btn-primary" onClick={() => router.push("/dashboard")}>
-          Back to Dashboard
+        <button className="btn-secondary" onClick={() => window.location.reload()}>
+          Retry
         </button>
       </div>
     );
   }
 
-  if (!client || !call) return null;
+  if (!joined || !client || !call) {
+    return (
+      <div className="call-loading">
+        <div className="call-loading-spinner" />
+        <p>Joining call...</p>
+      </div>
+    );
+  }
 
   return (
-    <StreamTheme>
-      <StreamVideo client={client}>
-        <StreamCall call={call}>
-          <CallContent meetingId={meetingId} onEnd={handleEnd} />
-        </StreamCall>
-      </StreamVideo>
-    </StreamTheme>
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        <CallInner meetingId={meetingId} />
+      </StreamCall>
+    </StreamVideo>
   );
 }

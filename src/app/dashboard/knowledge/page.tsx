@@ -6,5 +6,5 @@ import { KnowledgeClient } from "@/modules/knowledge/ui/components/knowledge-cli
 export default async function KnowledgePage() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/auth/sign-in");
-  return <KnowledgeClient />;
+  return <KnowledgeClient userId={session.user.id}/>;
 }

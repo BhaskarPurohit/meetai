@@ -30,11 +30,15 @@ export async function POST(
 
   if (!meeting) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Fire Inngest background job
-  await inngest.send({
-    name: "meeting/ended",
-    data: { meetingId: meeting.id, userId: session.user.id },
-  });
+  // Fire Inngest background job (non-fatal — Inngest dev server may not be running)
+  try {
+    await inngest.send({
+      name: "meeting/ended",
+      data: { meetingId: meeting.id, userId: session.user.id },
+    });
+  } catch (e) {
+    console.warn("Inngest event failed (is the dev server running?):", e);
+  }
 
   return NextResponse.json({ success: true });
 }

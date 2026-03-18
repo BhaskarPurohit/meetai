@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { meetings, actionItems, agents, meetingEmbeddings } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, count, and } from "drizzle-orm";
 
 export async function getMeetingsByUser(userId: string) {
   return db.query.meetings.findMany({
@@ -18,17 +18,23 @@ export async function getMeetingById(id: string, userId: string) {
 }
 
 export async function getDashboardStats(userId: string) {
-  const [allMeetings, allActionItems, allAgents, allEmbeddings] = await Promise.all([
-    db.query.meetings.findMany({ where: eq(meetings.userId, userId) }),
-    db.query.actionItems.findMany({ where: eq(actionItems.userId, userId) }),
-    db.query.agents.findMany({ where: eq(agents.userId, userId) }),
-    db.query.meetingEmbeddings.findMany({ where: eq(meetingEmbeddings.userId, userId) }),
+  const [
+    [{ totalMeetings }],
+    [{ openActionItems }],
+    [{ activeAgents }],
+    [{ knowledgeChunks }],
+  ] = await Promise.all([
+    db.select({ totalMeetings: count() }).from(meetings).where(eq(meetings.userId, userId)),
+    db
+      .select({ openActionItems: count() })
+      .from(actionItems)
+      .where(and(eq(actionItems.userId, userId), eq(actionItems.completed, false))),
+    db.select({ activeAgents: count() }).from(agents).where(eq(agents.userId, userId)),
+    db
+      .select({ knowledgeChunks: count() })
+      .from(meetingEmbeddings)
+      .where(eq(meetingEmbeddings.userId, userId)),
   ]);
 
-  return {
-    totalMeetings: allMeetings.length,
-    openActionItems: allActionItems.filter((a) => !a.completed).length,
-    activeAgents: allAgents.length,
-    knowledgeChunks: allEmbeddings.length,
-  };
+  return { totalMeetings, openActionItems, activeAgents, knowledgeChunks };
 }
