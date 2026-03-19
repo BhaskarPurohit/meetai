@@ -67,7 +67,7 @@ export const auth = betterAuth({
   ].filter(Boolean),
 
   advanced: {
-    crossSubdomainCookies: {
+    crossSubDomainCookies: {
       enabled: true,
       domain: ".vercel.app",
     },
