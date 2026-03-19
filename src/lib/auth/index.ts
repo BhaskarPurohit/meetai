@@ -59,12 +59,18 @@ export const auth = betterAuth({
   },
 
   // Trusted origins — prevents CSRF
+  // VERCEL_URL is set automatically per deployment (no protocol prefix).
+  // The wildcard covers all preview deployment URLs for this project.
   trustedOrigins: [
     env.BETTER_AUTH_URL,
     "https://meetai-gules-delta.vercel.app",
     "https://meetai-bhaskarpurohits-projects.vercel.app",
+    // Wildcard covers every preview URL: meetai-<hash>-bhaskarpurohits-projects.vercel.app
+    "https://*.vercel.app",
+    // Current deployment URL injected at runtime by Vercel
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
     "http://localhost:3000",
-  ].filter(Boolean),
+  ].filter(Boolean) as string[],
 
   advanced: {
     crossSubDomainCookies: {
