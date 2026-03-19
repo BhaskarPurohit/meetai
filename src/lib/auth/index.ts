@@ -60,10 +60,18 @@ export const auth = betterAuth({
 
   // Trusted origins — prevents CSRF
   trustedOrigins: [
+    env.BETTER_AUTH_URL,
     "https://meetai-gules-delta.vercel.app",
     "https://meetai-bhaskarpurohits-projects.vercel.app",
     "http://localhost:3000",
-  ],
+  ].filter(Boolean),
+
+  advanced: {
+    crossSubdomainCookies: {
+      enabled: true,
+      domain: ".vercel.app",
+    },
+  },
 });
 
 export type Session = typeof auth.$Infer.Session;
