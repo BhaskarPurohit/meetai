@@ -60,7 +60,7 @@ export const auth = betterAuth({
 
   // Trusted origins — prevents CSRF
   trustedOrigins: [
-    env.BETTER_AUTH_URL,
+    "https://meetai-gules-delta.vercel.app",
     "https://meetai-bhaskarpurohits-projects.vercel.app",
     "http://localhost:3000",
   ],
