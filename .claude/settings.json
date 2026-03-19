@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(grep -r \"verifyWebhook\\\\|verify_webhook\\\\|webhook\" c:UsersbhaskOneDriveDesktopmeetainode_modules@stream-ionode-sdkdist --include=*.d.ts -l)",
-      "Bash(grep -r \"Openai.*Realtime\\\\|@openai/realtime\\\\|Agent.*join\\\\|agent.*call\" /c/Users/bhask/OneDrive/Desktop/meetai --include=*.ts --include=*.tsx --include=*.json)"
-    ]
-  }
-}
